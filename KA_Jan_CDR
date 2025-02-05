@@ -1,0 +1,126 @@
+create database Amazon_B2B_Jan_CDR;
+
+use Amazon_B2B_Jan_CDR;
+
+--created table via flat file(CSV) 
+
+-- Table name KA_Jan_CDR (JAN'25 CDR KA data) around 8L Data
+
+select name from sys.tables;
+
+select * from KA_Jan_CDR;
+
+-- Status wise
+
+select distinct Status from KA_Jan_CDR order by Status asc;
+
+-- INT
+
+select Phone_Number, Campaign, Status, Customer_Date from KA_Jan_CDR where Status = 'INT';
+
+-- NRPC & NHGBP
+
+select Phone_Number, Campaign, Status, Customer_Date from KA_Jan_CDR where Status in ('NRPC','NHGBP');
+
+-- RC
+
+select Phone_Number, Campaign, Status, Customer_Date from KA_Jan_CDR where Status = 'RC';
+
+-- ALR
+
+select Phone_Number, Campaign, Status, Customer_Date from KA_Jan_CDR where Status = 'ALR';
+
+-- Sale made
+
+select Phone_Number, Campaign, Status, Customer_Date from KA_Jan_CDR where Status in ('Sale','SaleN');
+
+--Positive data
+
+select Phone_Number, Campaign, Status, Customer_Date from KA_Jan_CDR 
+where Status in ('INT', 'CALLBK', 'CBHOLD', 'FU', 'WGB', 'WWGB');
+
+-- Reamining Data
+
+select Phone_Number, Campaign, Status, Customer_Date from KA_Jan_CDR 
+where Status not in ('INT', 'CALLBK', 'CBHOLD', 'FU', 'WGB', 'WWGB');
+
+
+--Calls Duration Wise
+
+-- Above 4 Mints
+
+select Phone_Number, Campaign, Status, Talk_Duration, Customer_Date from KA_Jan_CDR 
+where Talk_Duration >= '00:04:00' order by Talk_Duration asc;
+
+--Above 1 Mint
+
+select Phone_Number, Campaign, Status, Talk_Duration, Customer_Date from KA_Jan_CDR 
+where Talk_Duration >= '00:01:00' order by Talk_Duration asc;
+
+--Above 30 Sec
+
+select Phone_Number, Campaign, Status, Talk_Duration, Customer_Date from KA_Jan_CDR 
+where Talk_Duration >= '00:00:30' order by Talk_Duration asc;
+
+--Below 30 Secs
+
+select Phone_Number, Campaign, Status, Talk_Duration, Customer_Date from KA_Jan_CDR 
+where Talk_Duration <= '00:00:30' order by Talk_Duration desc;
+
+--Agent wise
+
+select * from KA_Jan_CDR;
+
+-- Number of Calls
+
+Select [User], count (Phone_Number) as Number_of_calls from KA_Jan_CDR group by [User] order by [User] asc;
+
+--Number of Conn Calls
+
+Select Extension, count (Phone_Number) as Number_of_calls from KA_Jan_CDR group by Extension order by Extension asc;
+
+-- Number of Unq Conn Calls
+
+Select Extension, count ( distinct Phone_Number) as Number_of_calls from KA_Jan_CDR group by Extension order by Extension asc;
+
+--Number of Positive data (CB/FU)
+
+Select Extension, count (Phone_Number) as Number_of_Positive_data from KA_Jan_CDR 
+where Status in ('INT', 'CALLBK', 'CBHOLD', 'FU', 'WGB', 'WWGB') 
+group by Extension order by Extension asc;
+
+Select Extension, 
+count (case when Status = 'INT' then 1 end) as INT,
+count (case when Status in ('CALLBK','CBHOLD') then 1 end) as CALLBK,
+count (case when Status = 'Fu' then 1 end) as FU,
+count (case when Status in ('WGB','WWGB') then 1 end) as WGB
+from KA_Jan_CDR 
+where Status in ('INT', 'CALLBK', 'CBHOLD', 'FU', 'WGB', 'WWGB') 
+group by Extension order by Extension asc;
+
+--Number sale 
+
+select Extension, count(Phone_Number) as Sale from KA_Jan_CDR where Status in ('Sale', 'SaleN') group by Extension order by Extension asc;
+
+select Extension, count(case when status = 'Sale' then 1 end ) as Verified_Sale,
+                  count(case when status = 'SaleN' then 1 end ) as NON_Verified_Sale 
+from KA_Jan_CDR where status in ('Sale','SaleN') group by Extension order by Extension asc;
+
+--% of NRPC
+
+select Extension, (Count(case when status = 'NRPC' then 1 end) * 100 / Count(User)) as [%NRPC] from KA_Jan_CDR 
+where user not in ('VDAD') group by Extension order by Extension asc;
+
+--% of CD
+
+select Extension, (Count(case when status = 'CD' then 1 end) * 100 / Count(User)) as [%CD] from KA_Jan_CDR 
+where user not in ('VDAD') group by Extension order by Extension asc;
+
+--% of NI
+
+select Extension, (Count(case when status = 'NI' then 1 end) * 100 / Count(User)) as [%NI] from KA_Jan_CDR 
+where user not in ('VDAD') group by Extension order by Extension asc;
+
+
+
+
